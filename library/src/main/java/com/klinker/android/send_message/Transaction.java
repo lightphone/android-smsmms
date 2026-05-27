@@ -65,7 +65,7 @@ public class Transaction {
 
     private static final String TAG = "Transaction";
     public static Settings settings;
-    private Context context;
+    final private Context context;
 
     private Intent explicitSentSmsReceiver;
     private Intent explicitSentMmsReceiver;
@@ -294,7 +294,7 @@ public class Transaction {
                 body = settings.getPreText() + " " + body;
             }
 
-            SmsManager smsManager = SmsManagerFactory.createSmsManager(settings);
+            SmsManager smsManager = SmsManagerFactory.createSmsManager(context, settings);
             Log.v("send_transaction", "found sms manager");
 
             if (settings.getSplit()) {
@@ -700,7 +700,7 @@ public class Transaction {
             configOverrides.putInt(SmsManager.MMS_CONFIG_MAX_MESSAGE_SIZE, MmsConfig.getMaxMessageSize());
 
             if (contentUri != null) {
-                SmsManagerFactory.createSmsManager(settings).sendMultimediaMessage(context,
+                SmsManagerFactory.createSmsManager(context, settings).sendMultimediaMessage(context,
                         contentUri, null, configOverrides, pendingIntent);
             } else {
                 Log.e(TAG, "Error writing sending Mms");

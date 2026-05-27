@@ -1,32 +1,41 @@
 package com.klinker.android.send_message;
 
+import android.content.Context;
 import android.os.Build;
 import android.telephony.SmsManager;
 
 public class SmsManagerFactory {
 
-    public static SmsManager createSmsManager(Settings settings) {
-        return createSmsManager(settings.getSubscriptionId());
+    public static SmsManager createSmsManager(Context context, Settings settings) {
+        return createSmsManager(context, settings.getSubscriptionId());
     }
 
-    public static SmsManager createSmsManager(int subscriptionId) {
-        if (subscriptionId != Settings.DEFAULT_SUBSCRIPTION_ID &&
-                Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP_MR1) {
-            SmsManager manager = null;
+    public static SmsManager createSmsManager(Context context, int subscriptionId) {
+        SmsManager manager;
 
-            try {
-                manager = SmsManager.getSmsManagerForSubscriptionId(subscriptionId);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-
-            if (manager != null) {
-                return manager;
-            } else {
-                return SmsManager.getDefault();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            manager = context.getSystemService(SmsManager.class);
+            if (subscriptionId != Settings.DEFAULT_SUBSCRIPTION_ID) {
+                try {
+                    manager = manager.createForSubscriptionId(subscriptionId);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
         } else {
-            return SmsManager.getDefault();
+            // Pre-API 31: fall back to the old static methods
+            if (subscriptionId != Settings.DEFAULT_SUBSCRIPTION_ID) {
+                try {
+                    manager = SmsManager.getSmsManagerForSubscriptionId(subscriptionId);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    manager = SmsManager.getDefault();
+                }
+            } else {
+                manager = SmsManager.getDefault();
+            }
         }
+
+        return manager != null ? manager : SmsManager.getDefault();
     }
 }
