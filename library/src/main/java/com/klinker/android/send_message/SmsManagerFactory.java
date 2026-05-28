@@ -4,6 +4,8 @@ import android.content.Context;
 import android.os.Build;
 import android.telephony.SmsManager;
 
+import java.lang.reflect.Method;
+
 public class SmsManagerFactory {
 
     public static SmsManager createSmsManager(Context context, Settings settings) {
@@ -13,11 +15,13 @@ public class SmsManagerFactory {
     public static SmsManager createSmsManager(Context context, int subscriptionId) {
         SmsManager manager;
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+        if (Build.VERSION.SDK_INT >= 31) { // Build.VERSION_CODES.S
             manager = context.getSystemService(SmsManager.class);
             if (subscriptionId != Settings.DEFAULT_SUBSCRIPTION_ID) {
                 try {
-                    manager = manager.createForSubscriptionId(subscriptionId);
+                    // lp2 does not have this method, cant compile with it.
+                    Method m = SmsManager.class.getMethod("createForSubscriptionId", int.class);
+                    manager = (SmsManager) m.invoke(manager, subscriptionId);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
